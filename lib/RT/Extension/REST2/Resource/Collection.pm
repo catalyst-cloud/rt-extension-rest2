@@ -10,7 +10,7 @@ extends 'RT::Extension::REST2::Resource';
 use Scalar::Util qw( blessed );
 use Web::Machine::FSM::States qw( is_status_code );
 use Module::Runtime qw( require_module );
-use RT::Extension::REST2::Util qw( serialize_record expand_uid );
+use RT::Extension::REST2::Util qw( serialize_record expand_uid format_datetime );
 use POSIX qw( ceil );
 
 has 'collection_class' => (
@@ -60,10 +60,19 @@ sub serialize {
     my $self = shift;
     my $collection = $self->collection;
     my @results;
+    my @fields = defined $self->request->param('fields') ? split(/,/, $self->request->param('fields')) : ();
 
     while (my $item = $collection->Next) {
-        # TODO: Allow selection of desired fields
-        push @results, expand_uid( $item->UID );
+        my $result = expand_uid( $item->UID );
+
+        # Allow selection of desired fields
+        if ($result) {
+            for my $field (@fields) {
+                my $field_result = $self->expand_field($item, $field);
+                $result->{$field} = $field_result if defined $field_result;
+            }
+        }
+        push @results, $result;
     }
 
     my %results = (
@@ -96,6 +105,48 @@ sub serialize {
     };
 
     return \%results;
+}
+
+# Used in Serialize to allow additional fields to be selected ala JSON API on:
+# http://jsonapi.org/examples/
+sub expand_field {
+    my $self  = shift;
+    my $item  = shift;
+    my $field = shift;
+    my $param_prefix = shift || 'fields';
+
+    my ($result, $obj);
+    if ($item->can('_Accessible') && $item->_Accessible($field => 'read')) {
+        # RT::Record derived object, so we can check access permissions.
+
+        if ($item->_Accessible($field => 'type') =~ /(datetime|timestamp)/i) {
+            $result = format_datetime($item->$field);
+        } elsif ($item->can($field . 'Obj')) {
+            my $method = $field . 'Obj';
+            $obj = $item->$method;
+            if ($obj->can('UID')) {
+                $result = expand_uid( $obj->UID );
+            } else {
+                $result = {};
+            }
+        } else {
+            $result = $item->$field;
+        }
+    }
+
+    $result //= '';
+
+    if (defined $obj && defined $result) {
+        my $param_field = $param_prefix . '[' . $field . ']';
+        my @subfields = split(/,/, $self->request->param($param_field) || '');
+
+        for my $subfield (@subfields) {
+            my $subfield_result = $self->expand_field($obj, $subfield, $param_field);
+            $result->{$subfield} = $subfield_result if defined $subfield_result;
+        }
+    }
+    
+    return $result;
 }
 
 # XXX TODO: Bulk update via DELETE/PUT on a collection resource?
