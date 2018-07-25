@@ -1,3 +1,9 @@
+rt-extension-rest2 (1.04b-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Andrew Ruthven <andrew@etc.gen.nz>  Wed, 25 Jul 2018 04:21:49 +0000
+
 rt-extension-rest2 (1.03-4) unstable; urgency=low
 
   * Initial Release (Closes #894998)
