@@ -1,5 +1,12 @@
 Revision history for RT-Extension-REST2
 
+1.06 2019-04-03
+ - Add orderby and order support to JSON/TicketSQL searches(Thanks gibus!)
+
+1.05 2018-11-19
+ - Add support to manage memberships for users and groups(Thanks gibus!)
+ - Add support to enable/disable users and groups(Thanks gibus!)
+
 Catalyst 1.04b
  - Insert total page count and previous/next links for plural collection results
  - Allow specifying fields in search results
