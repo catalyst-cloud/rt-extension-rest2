@@ -433,7 +433,6 @@ my $no_ticket_cf_values = bag(
     is($content->{Status}, 'new');
     is($content->{Subject}, 'Ticket creation using REST - CF By Name');
     is_deeply($content->{'CustomFields'}{$single_cf_id}, ['Hello world! Again.'], 'Ticket custom field (by name)');
->>>>>>> create-record-customfields-by-name
 }
 
 # Ticket Creation for multi-value CF
