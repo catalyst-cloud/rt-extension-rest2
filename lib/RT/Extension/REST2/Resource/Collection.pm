@@ -39,12 +39,9 @@ sub setup_paging {
     elsif ($per_page > 100      ) { $per_page = 100 }
     $self->collection->RowsPerPage($per_page);
 
-    my $max_page = ceil($self->collection->CountAll / $self->collection->RowsPerPage);
-
     my $page = $self->request->param('page') || 1;
     if    ($page !~ /^\d+$/  ) { $page = 1 }
     elsif ($page == 0        ) { $page = 1 }
-    elsif ($page > $max_page ) { $page = $max_page }
     $self->collection->GotoPage($page - 1);
 }
 
@@ -100,7 +97,9 @@ sub serialize {
         $results{next_page} = $uri->as_string;
     };
     if ($results{page} > 1) {
-        $uri->query_form( @query_form, page => $results{page} - 1 );
+        # If we're beyond the last page, set prev_page as the last page
+        # available, otherwise, the previous page.
+        $uri->query_form( @query_form, page => ($results{page} > $results{pages} ? $results{pages} : $results{page} - 1) );
         $results{prev_page} = $uri->as_string;
     };
 
