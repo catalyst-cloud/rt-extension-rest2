@@ -48,6 +48,9 @@ sub create_record {
             Interface => 'REST',
             Body      => delete $data->{Content},
             Type      => delete $data->{ContentType} || 'text/plain',
+            ( map { $_ => delete $data->{$_} } grep { defined $data->{$_} } qw/From To Date/ ),
+            # Keep Subject and Cc since they are valid parameters of RT::Ticket::Create
+            ( map { $_ => $data->{$_} } grep        { defined $data->{$_} } qw/Subject Cc/ ),
         );
     }
 
