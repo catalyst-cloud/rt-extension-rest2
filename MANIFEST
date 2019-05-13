@@ -71,6 +71,7 @@ t/catalogs.t
 t/conflict.t
 t/group-members.t
 t/data/image.png
+t/customfields.t
 t/lib/RT/Extension/REST2/Test.pm.in
 t/not_found.t
 t/organization.t
