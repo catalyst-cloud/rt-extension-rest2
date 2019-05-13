@@ -26,6 +26,8 @@ sub dispatch_rules {
     )
 }
 
+sub content_types_accepted { [ {'application/json' => 'from_json'}, { 'multipart/form-data' => 'from_multipart' } ] }
+
 sub create_record {
     my $self = shift;
     my $data = shift;
@@ -52,6 +54,19 @@ sub create_record {
             # Keep Subject and Cc since they are valid parameters of RT::Ticket::Create
             ( map { $_ => $data->{$_} } grep        { defined $data->{$_} } qw/Subject Cc/ ),
         );
+    }
+
+    foreach my $attachment (@{$data->{AttachmentsContents}}) {
+        foreach my $field ('FileName', 'FileType', 'FileContent') {
+            return (\400, "$field is a required field for each attachment in AttachmentsContents")
+            unless $attachment->{$field};
+        }
+        $data->{MIMEObj}->attach(
+            Type => $attachment->{FileType},
+            Filename => $attachment->{FileName},
+            Data => MIME::Base64::decode_base64($attachment->{FileContent}),
+        );
+        delete $data->{AttachmentsContents};
     }
 
     my ($ok, $txn, $msg) = $self->_create_record($data);
