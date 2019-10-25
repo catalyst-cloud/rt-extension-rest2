@@ -1,18 +1,17 @@
 rt-extension-rest2 (1.06b-1) unstable; urgency=medium
 
   * New upstream release
-  * 
 
- -- Andrew Ruthven <andrew@etc.gen.nz>  Mon, 13 May 2019 20:54:01 +0000
+ -- Andrew Ruthven <puck@catalystcloud.nz>  Mon, 13 May 2019 20:54:01 +0000
 
 rt-extension-rest2 (1.04b-1) unstable; urgency=low
 
   * New upstream release
 
- -- Andrew Ruthven <andrew@etc.gen.nz>  Wed, 25 Jul 2018 04:21:49 +0000
+ -- Andrew Ruthven <puck@catalystcloud.nz>  Wed, 25 Jul 2018 04:21:49 +0000
 
 rt-extension-rest2 (1.03-4) unstable; urgency=low
 
   * Initial Release (Closes #894998)
 
- -- Andrew Ruthven <andrew@etc.gen.nz>  Fri, 05 Apr 2018 22:55:28 +0000
+ -- Andrew Ruthven <puck@catalystcloud.nz>  Fri, 05 Apr 2018 22:55:28 +0000
