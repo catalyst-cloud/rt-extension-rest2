@@ -1,6 +1,5 @@
 use strict;
 use warnings;
-use lib 't/lib';
 use RT::Extension::REST2::Test tests => undef;
 use Test::Deep;
 
@@ -13,7 +12,7 @@ my $user = RT::Extension::REST2::Test->user;
 my $queue = RT::Test->load_or_create_queue( Name => "General" );
 
 $user->PrincipalObj->GrantRight( Right => $_ )
-    for qw/CreateTicket ShowTicket ModifyTicket OwnTicket AdminUsers/;
+    for qw/CreateTicket ShowTicket ModifyTicket OwnTicket AdminUsers SeeGroup/;
 
 # Create and view ticket with no watchers
 {
