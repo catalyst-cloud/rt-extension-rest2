@@ -4,7 +4,7 @@ use 5.010001;
 
 package RT::Extension::REST2;
 
-our $VERSION = '1.04';
+our $VERSION = '1.07';
 our $REST_PATH = '/REST/2.0';
 
 use Plack::Builder;
@@ -296,7 +296,7 @@ Below are some examples using the endpoints above.
     # Create a ticket, setting some custom fields
     curl -X POST -H "Content-Type: application/json" -u 'root:password'
         -d '{ "Queue": "General", "Subject": "Create ticket test",
-            "From": "user1@example.com", "To": "rt@example.com",
+            "Requestor": "user1@example.com", "Cc": "user2@example.com",
             "Content": "Testing a create",
             "CustomFields": {"Severity": "Low"}}'
         'https://myrt.com/REST/2.0/ticket'
@@ -445,11 +445,11 @@ Below are some examples using the endpoints above.
 
     GET /user/:id
     GET /user/:name
-        retrieve a user by numeric id or username
+        retrieve a user by numeric id or username (including its memberships and whether it is disabled)
 
     PUT /user/:id
     PUT /user/:name
-        update a user's metadata; provide JSON content
+        update a user's metadata (including its Disabled status); provide JSON content
 
     DELETE /user/:id
     DELETE /user/:name
@@ -465,11 +465,67 @@ Below are some examples using the endpoints above.
     POST /groups
         search for groups using L</JSON searches> syntax
 
+    POST /group
+        create a (user defined) group; provide JSON content
+
     GET /group/:id
-        retrieve a group (including its members)
+        retrieve a group (including its members and whether it is disabled)
+
+    PUT /group/:id
+        update a groups's metadata (including its Disabled status); provide JSON content
+
+    DELETE /group/:id
+        disable group
 
     GET /group/:id/history
         retrieve list of transactions for group
+
+=head3 User Memberships
+
+    GET /user/:id/groups
+    GET /user/:name/groups
+        retrieve list of groups which a user is a member of
+
+    PUT /user/:id/groups
+    PUT /user/:name/groups
+        add a user to groups; provide a JSON array of groups ids
+
+    DELETE /user/:id/group/:id
+    DELETE /user/:name/group/:id
+        remove a user from a group
+
+    DELETE /user/:id/groups
+    DELETE /user/:name/groups
+        remove a user from all groups
+
+=head3 Group Members
+
+    GET /group/:id/members
+        retrieve list of direct members of a group
+
+    GET /group/:id/members?recursively=1
+        retrieve list of direct and recursive members of a group
+
+    GET /group/:id/members?users=0
+        retrieve list of direct group members of a group
+
+    GET /group/:id/members?users=0&recursively=1
+        retrieve list of direct and recursive group members of a group
+
+    GET /group/:id/members?groups=0
+        retrieve list of direct user members of a group
+
+    GET /group/:id/members?groups=0&recursively=1
+        retrieve list of direct and recursive user members of a group
+
+    PUT /group/:id/members
+        add members to a group; provide a JSON array of principal ids
+
+    DELETE /group/:id/member/:id
+        remove a member from a group
+
+    DELETE /group/:id/members
+        remove all members from a group
 
 =head3 Custom Fields
 
@@ -517,6 +573,26 @@ values).  An example:
 The JSON payload must be an array of hashes with the keys C<field> and C<value>
 and optionally C<operator>.
 
+Results can be sorted by using multiple query parameter arguments
+C<orderby> and C<order>. Each C<orderby> query parameter specify a field
+to be used for sorting results. If the request includes more than one
+C<orderby> query parameter, results are sorted according to
+corresponding fields in the same order than they are specified. For
+instance, if you want to sort results according to creation date and
+then by id (in case of some items have the same creation date), your
+request should specify C<?orderby=Created&orderby=id>. By default,
+results are sorted in ascending order. To sort results in descending
+order, you should use C<order=DESC> query parameter. Any other value for
+C<order> query parameter will be treated as C<order=ASC>, for ascending
+order. The order of the C<order> query parameters should be the same as
+the C<orderby> query parameters. Therefore, if you specify two fields to
+sort the results (with two C<orderby> parameters) and you want to sort
+the second field by descending order, you should also explicitely
+specify C<order=ASC> for the first field:
+C<orderby=Created&order=ASC&orderby=id&order=DESC>. C<orderby> and
+C<order> query parameters are supported in both JSON and TicketSQL
+searches.
+
 Results are returned in
 L<the format described below|/"Example of plural resources (collections)">.
 
@@ -546,6 +622,59 @@ All plural resources (such as C</tickets>) require pagination, controlled by
 the query parameters C<page> and C<per_page>.  The default page size is 20
 items, but it may be increased up to 100 (or decreased if desired).  Page
 numbers start at 1.
+
+=head2 Fields
+
+When fetching search results you can include additional fields by adding
+a query parameter C<fields> which is a comma seperated list of fields
+to include. You must use the camel case version of the name as included
+in the results for the actual item.
+
+You can use additional fields parameters to expand child blocks, for
+example (line wrapping inserted for readability):
+
+    XX_RT_URL_XX/REST/2.0/tickets
+      ?fields=Owner,Status,Created,Subject,Queue
+      &fields[Queue]=Name,Description
+
+Says that in the result set for tickets, the extra fields for Owner, Status,
+Created, Subject and Queue should be included. But in addition, for the Queue
+block, also include Name and Description. The results would be similar to
+this (only one ticket is displayed):
+
+   "items" : [
+      {
+         "Subject" : "Sample Ticket",
+         "id" : "2",
+         "type" : "ticket",
+         "Owner" : {
+            "id" : "root",
+            "_url" : "XX_RT_URL_XX/REST/2.0/user/root",
+            "type" : "user"
+         },
+         "_url" : "XX_RT_URL_XX/REST/2.0/ticket/2",
+         "Status" : "resolved",
+         "Created" : "2018-06-29:10:25Z",
+         "Queue" : {
+            "id" : "1",
+            "type" : "queue",
+            "Name" : "General",
+            "Description" : "The default queue",
+            "_url" : "XX_RT_URL_XX/REST/2.0/queue/1"
+         }
+      }
+      { … },
+      …
+   ],
+
+If the user performing the query doesn't have rights to view the record
+(or sub record), then the empty string will be returned.
+
+For single object URLs like /ticket/:id, as it already contains all the
+fields by default, parameter "fields" is not needed, but you can still
+use additional fields parameters to expand child blocks:
+
+    XX_RT_URL_XX/REST/2.0/ticket/1?fields[Queue]=Name,Description
 
 =head2 Authentication Methods
 
@@ -681,7 +810,7 @@ L<rt.cpan.org|http://rt.cpan.org/Public/Dist/Display.html?Name=RT-Extension-REST
 
 =head1 LICENSE AND COPYRIGHT
 
-This software is Copyright (c) 2015-2017 by Best Practical Solutions, LLC.
+This software is Copyright (c) 2015-2019 by Best Practical Solutions, LLC.
 
 This is free software, licensed under:
 
