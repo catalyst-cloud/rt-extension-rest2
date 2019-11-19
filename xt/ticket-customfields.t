@@ -162,7 +162,7 @@ my $no_ticket_cf_values = bag(
     );
     is($res->code, 200);
     my $content = $mech->json_response;
-    is(scalar @{$content->{items}}, 1);
+    is(scalar @{$content->{items}}, 4);
 
     my $ticket = $content->{items}->[0];
 
@@ -243,22 +243,29 @@ my $no_ticket_cf_values = bag(
     );
     is($res->code, 200);
 
+    my $cf_no_values = bag(
+        { name => 'Single', id => $single_cf_id, type => 'customfield', _url => ignore(), values => [] },
+        { name => 'Multi',  id => $multi_cf_id,  type => 'customfield', _url => ignore(), values => [] },
+    );
+
     $content = $mech->json_response;
     is($content->{id}, $ticket_id_cf_by_name);
     is($content->{Type}, 'ticket');
     is($content->{Status}, 'new');
     is($content->{Subject}, 'Ticket creation using REST - CF By Name');
-    is_deeply($content->{CustomFields}, { $single_cf_id => [], $multi_cf_id => [] }, 'No ticket custom field values');
+    cmp_deeply($content->{CustomFields}, $cf_no_values, 'No ticket custom field values');
     cmp_deeply(
         [grep { $_->{ref} eq 'customfield' } @{ $content->{'_hyperlinks'} }],
         [{
             ref => 'customfield',
             id  => $single_cf_id,
+            name => 'Single',
             type => 'customfield',
             _url => re(qr[$rest_base_path/customfield/$single_cf_id$]),
         }, {
             ref => 'customfield',
             id  => $multi_cf_id,
+            name => 'Multi',
             type => 'customfield',
             _url => re(qr[$rest_base_path/customfield/$multi_cf_id$]),
         }],
@@ -470,7 +477,7 @@ my $no_ticket_cf_values = bag(
     is($content->{Type}, 'ticket');
     is($content->{Status}, 'new');
     is($content->{Subject}, 'Ticket creation using REST');
-    is_deeply($content->{'CustomFields'}{$single_cf_id}, ['Hello world!'], 'Ticket custom field');
+    cmp_deeply($content->{CustomFields}, $ticket_cf_value, 'Ticket custom field');
 
     # CustomField by Name
     $res = $mech->get($ticket_url_cf_by_name,
@@ -478,12 +485,17 @@ my $no_ticket_cf_values = bag(
     );
     is($res->code, 200);
 
+    $ticket_cf_value = bag(
+        { name => 'Single', id => $single_cf_id, type => 'customfield', _url => ignore(), values => ['Hello world! Again.'] },
+        { name => 'Multi',  id => $multi_cf_id,  type => 'customfield', _url => ignore(), values => [] },
+    );
+
     $content = $mech->json_response;
     is($content->{id}, $ticket_id_cf_by_name);
     is($content->{Type}, 'ticket');
     is($content->{Status}, 'new');
     is($content->{Subject}, 'Ticket creation using REST - CF By Name');
-    is_deeply($content->{'CustomFields'}{$single_cf_id}, ['Hello world! Again.'], 'Ticket custom field (by name)');
+    cmp_deeply($content->{'CustomFields'}, $ticket_cf_value, 'Ticket custom field (by name)');
 }
 
 # Ticket Creation for multi-value CF
@@ -496,7 +508,7 @@ for my $value (
         Subject => 'Multi-value CF',
         Queue   => 'General',
         CustomFields => {
-            $multi_cf_id => $value,
+            'Multi' => $value,
         },
     };
 
@@ -526,7 +538,7 @@ for my $value (
     );
     cmp_deeply($content->{'CustomFields'}, $ticket_cf_value, 'Ticket custom field');
 
-    # Ticket Show - Fields, custom fields
+    # Ticket Search - Fields, custom fields
     {
         $res = $mech->get("$rest_base_path/tickets?query=id>0&fields=Status,Owner,CustomFields,Subject&fields[Owner]=Name&fields[CustomFields]=Name,values",
             'Authorization' => $auth,
@@ -540,7 +552,7 @@ for my $value (
         is($ticket->{Status}, 'new');
         is($ticket->{id}, $ticket_id);
         is($ticket->{Subject}, 'Multi-value CF');
-        cmp_deeply($ticket->{'CustomFields'}, $ticket_cf_value, 'Ticket custom field');
+        cmp_deeply($ticket->{CustomFields}, $ticket_cf_value, 'Ticket custom field');
     }
 }
 

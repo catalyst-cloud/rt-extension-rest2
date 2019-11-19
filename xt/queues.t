@@ -327,8 +327,7 @@ my ($features_url, $features_id);
     is($queue->{Name}, 'Features');
 }
 
-# all queues, basic fields plus Name, Lifecycle. Lifecycle should be empty
-# string as we don't allow returning it.
+# all queues, basic fields plus Name, Lifecycle.
 {
     my $res = $mech->post_json("$rest_base_path/queues/all?fields=Name,Lifecycle",
         [],
@@ -342,7 +341,7 @@ my ($features_url, $features_id);
     my $queue = $content->{items}->[0];
     is(scalar keys %$queue, 5);
     is($queue->{Name}, 'Features');
-    is_deeply($queue->{Lifecycle}, {}, 'Lifecycle is empty');
+    is($queue->{Lifecycle}, 'default', 'Lifecycle is default');
 }
 
 done_testing;
