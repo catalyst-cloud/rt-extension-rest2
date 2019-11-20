@@ -1,3 +1,9 @@
+rt-extension-rest2 (1.08b-1) unstable; urgency=medium
+
+  * New upstream release
+
+ -- Andrew Ruthven <puck@catalystcloud.nz>  Wed, 20 Nov 2019 10:14:23 +0000
+
 rt-extension-rest2 (1.06b-1) unstable; urgency=medium
 
   * New upstream release
