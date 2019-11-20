@@ -590,6 +590,29 @@ Below are some examples using the endpoints above.
     GET /queue/:name/history
         retrieve list of transactions for queue
 
+=head3 Queue examples
+
+Below are some examples using the enpoints above.
+
+    # Create A Queue
+    curl -X POST -H "Content-Type: application/json" -u 'root:password'
+        -d '{"Name" : "NewQueue", "Description" : "A Queue For New Things"}'
+        'https://myrt.com/REST/2.0/queue'
+
+    # Get All Queues
+    curl -X GET -u 'root:password'
+        'https://myrt.com/REST/2.0/queues/all'
+
+    # Search For A Queue
+     curl -X POST -H "Content-Type: application/json" -u 'root:password'
+        -d '[{"field" : "Name", "value" : "General"}]'
+        'https://myrt.com/REST/2.0/queues'
+
+    # Update A Queue
+    curl -X PUT -H "Content-Type: application/json" -u 'root:password'
+        -d '{"Name" : "NewName", "CustomFields" : { "MyCustomField" : "UpdatedValue" } }'
+        'https://myrt.com/REST/2.0/queue/General'
+
 =head3 Assets
 
     GET /assets?query=<JSON>
@@ -610,6 +633,30 @@ Below are some examples using the endpoints above.
 
     GET /asset/:id/history
         retrieve list of transactions for asset
+
+=head3 Asset Examples
+
+Below are some examples using the enpoints above.
+
+    # Create an Asset
+    curl -X POST -H "Content-Type: application/json" -u 'root:password'
+        -d '{"Name" : "Asset From Rest",
+            "Catalog" : "General assets",
+            "Description" : "Some content",
+            "CustomFields" : {"MyCustomField" : "Value On Create"}
+            }'
+        'https://myrt.com/REST/2.0/asset'
+
+    # Search Assets
+    curl -X POST -H "Content-Type: application/json" -u 'root:password'
+        -d '[{ "field" : "id", "operator" : ">=", "value" : 0 }]'
+        'https://myrt.com/REST/2.0/assets'
+
+    # Update Asset
+    curl -X PUT -H "Content-Type: application/json" -u 'root:password'
+        -d '{"Description": "A new description",
+            "CustomFields" : {"MyCustomField" : "NewValue"}}'
+        'https://myrt.com/REST/2.0/asset/2'
 
 =head3 Catalogs
 
@@ -659,6 +706,29 @@ Below are some examples using the endpoints above.
     GET /user/:id/history
     GET /user/:name/history
         retrieve list of transactions for user
+
+=head3 User examples
+
+Below are some examples using the enpoints above.
+
+    # Search
+    curl -X POST -H "Content-Type: application/json"
+        -d '[{"field": "Name", "operator": "LIKE", "value" : "MyUserName"}]'
+        -u 'root:password' 'https://myrt.com/REST/2.0/users'
+
+    # Create
+    curl -X POST -H "Content-Type: application/json"
+        -d '{"Name": "TestUser", "Nickname": "Tester"}'
+        -u 'root:password' 'https://myrt.com/REST/2.0/user'
+
+    # Update
+    curl -X PUT -H "Content-Type: application/json"
+        -d '{"Name": "NewName",  "CustomFields" : {"MyCF" : "NewValue"} }'
+        -u 'root:password' 'https://myrt.com/REST/2.0/user/TestUser'
+
+    # Delete
+    curl -X DELETE -u 'root:password'
+        'http://localhost:8080/REST/2.0/user/MyUser'
 
 =head3 Groups
 
