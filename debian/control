@@ -4,7 +4,6 @@ Priority: optional
 Maintainer: Andrew Ruthven <andrew@etc.gen.nz>
 Build-Depends: debhelper (>= 9.20120312)
 Build-Depends-Indep: perl
- , libmodule-install-rtx-perl
 Standards-Version: 3.9.8
 Vcs-Git: https://salsa.debian.org/request-tracker-team/rt-extension-rest2.git
 Vcs-Browser: https://salsa.debian.org/request-tracker-team/rt-extension-rest2
