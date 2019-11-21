@@ -41,6 +41,7 @@ USAGE
            "total" : 1,
            "count" : 1,
            "page" : 1,
+           "pages" : 1,
            "per_page" : 20,
            "items" : [
               {
@@ -861,7 +862,9 @@ USAGE
         {
            "count" : 20,
            "page" : 1,
+           "pages" : 191,
            "per_page" : 20,
+           "next_page" : "<collection path>?page=2"
            "total" : 3810,
            "items" : [
               { … },
@@ -877,7 +880,10 @@ USAGE
     All plural resources (such as /tickets) require pagination, controlled
     by the query parameters page and per_page. The default page size is 20
     items, but it may be increased up to 100 (or decreased if desired). Page
-    numbers start at 1.
+    numbers start at 1. The number of pages is returned, and if there is a
+    next or previous page, then the URL for that page is returned in the
+    next_page and prev_page variables respectively. It is up to you to store
+    the required JSON to pass with the following page request.
 
   Fields
     When fetching search results you can include additional fields by adding
@@ -889,13 +895,15 @@ USAGE
     example (line wrapping inserted for readability):
 
         XX_RT_URL_XX/REST/2.0/tickets
-          ?fields=Owner,Status,Created,Subject,Queue
+          ?fields=Owner,Status,Created,Subject,Queue,CustomFields
           &fields[Queue]=Name,Description
+          &fields[CustomFields]=name,values
 
     Says that in the result set for tickets, the extra fields for Owner,
     Status, Created, Subject and Queue should be included. But in addition,
-    for the Queue block, also include Name and Description. The results
-    would be similar to this (only one ticket is displayed):
+    for the Queue block, also include Name and Description, then include
+    name and values for the CustomFields. The results would be similar to
+    this (only one ticket is displayed in this example):
 
        "items" : [
           {
@@ -916,14 +924,26 @@ USAGE
                 "Name" : "General",
                 "Description" : "The default queue",
                 "_url" : "XX_RT_URL_XX/REST/2.0/queue/1"
-             }
+             },
+             "CustomFields" : [
+                 {
+                     "id" : "1",
+                     "type" : "customfield",
+                     "_url" : "XX_RT_URL_XX/REST/2.0/customfield/1",
+                     "name" : "My Custom Field",
+                     "values" : [
+                         "CustomField value"
+                     },
+                 }
+             ]
           }
           { … },
           …
        ],
 
     If the user performing the query doesn't have rights to view the record
-    (or sub record), then the empty string will be returned.
+    (or sub record), then the empty string or an empty hash will be
+    returned.
 
     For single object URLs like /ticket/:id, as it already contains all the
     fields by default, parameter "fields" is not needed, but you can still
