@@ -1,8 +1,9 @@
 Revision history for RT-Extension-REST2
 
-Pending
+Catalyst 1.08b 2019-11-21
  - Insert total page count and previous/next links for plural collection results
  - Return more information about CustomFields when returning ticket
+ - Various others...
 
 1.08 2019-08-09
  - Accept transaction custom fields on comment/correspond
