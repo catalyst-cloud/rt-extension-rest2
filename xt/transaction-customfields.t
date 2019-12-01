@@ -69,6 +69,8 @@ is( $res->code, 200, 'Fetched ticket via REST2 API');
     is( $mech->json_response, [ "Correspondence added - CF Processing Error: transaction custom fields not updated" ], 'Bogus cf name');
 }
 
+=cut
+
 # Test as a user.
 my $user = RT::Extension::REST2::Test->user;
 
@@ -80,15 +82,6 @@ $user->PrincipalObj->GrantRight( Right => 'ShowTicket' );
 $user->PrincipalObj->GrantRight( Right => 'ShowTicketComments' );
 $user->PrincipalObj->GrantRight( Right => 'SeeCustomField' );
 $user->PrincipalObj->GrantRight( Right => 'ModifyCustomField' );
-
-my $single_cf = RT::CustomField->new( RT->SystemUser );
-my ($ok, $msg) = $single_cf->Create( Name => 'Single', Type => 'FreeformSingle', LookupType => RT::Transaction->CustomFieldLookupType);
-ok($ok, $msg);
-
-my $queue = RT::Test->load_or_create_queue( Name => "General" );
-my $single_cf_id;
-($single_cf_id,$msg) = $single_cf->AddToObject($queue);
-ok($single_cf_id, $msg);
 
 my ($ticket_url, $ticket_id);
 {
@@ -117,7 +110,7 @@ my ($ticket_url, $ticket_id);
         Content => 'Content',
         ContentType => 'text/plain',
         'TxnCustomFields' => {
-            'Single' => 'Txn CustomField',
+            'TxnCF' => 'Txn CustomField',
          },
     };
 
@@ -126,7 +119,14 @@ my ($ticket_url, $ticket_id);
         'Authorization' => $auth,
     );
     is($res->code, 201);
-    cmp_deeply($mech->json_response, [re(qr/Correspondence added|Message recorded/)]);
+    my $response = $mech->json_response;
+
+
+    my $response_value = bag(
+        re(qr/Correspondence added|Message added/), 'Custom fields updated',
+    );
+
+    cmp_deeply($mech->json_response, $response_value, 'Response containts correct strings');
 }
 
 # Look for the Transaction with our CustomField set.
@@ -160,12 +160,10 @@ my ($ticket_url, $ticket_id);
     like($content->{Data}, qr/^Add Txn with CF/);
 
     my $single_cf_value = bag(
-        { name => 'Single', id => $single_cf_id, type => 'customfield', _url => ignore(), values => ['Txn CustomField'] },
+        { name => 'TxnCF', id => $cfid, type => 'customfield', _url => ignore(), values => ['Txn CustomField'] },
     );
 
     cmp_deeply($content->{CustomFields}, $single_cf_value, 'Txn is set');
 }
-
-=cut
 
 done_testing();
