@@ -1,7 +1,10 @@
 Revision history for RT-Extension-REST2
 
+Catalyst 1.08d 2020-01-03
+ - Expand any RT::Groups objects, such as Requestors or AdminCc.
+
 Catalyst 1.08c 2019-11-29
- - Return more infroation about Txn CustomFields
+ - Return more infromation about Txn CustomFields
 
 Catalyst 1.08b 2019-11-21
  - Insert total page count and previous/next links for plural collection results
