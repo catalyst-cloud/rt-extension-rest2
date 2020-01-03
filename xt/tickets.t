@@ -37,6 +37,7 @@ my ($ticket_url, $ticket_id);
         Subject => 'Ticket creation using REST',
         Queue   => 'General',
         Content => 'Testing ticket creation using REST API.',
+        Requestor => 'requestor@example.com',
     };
 
     # Rights Test - No CreateTicket
@@ -232,7 +233,7 @@ my ($ticket_url, $ticket_id);
 
 # Ticket Search - Fields, sub objects, no right to see Queues
 {
-    my $res = $mech->get("$rest_base_path/tickets?query=id>0&fields=Status,Owner,Queue&fields[Queue]=Name,Description&fields[Owner]=Name",
+    my $res = $mech->get("$rest_base_path/tickets?query=id>0&fields=Status,Owner,Queue,Requestors&fields[Queue]=Name,Description&fields[Owner]=Name",
         'Authorization' => $auth,
     );
     is($res->code, 200);
@@ -247,7 +248,20 @@ my ($ticket_url, $ticket_id);
     is($ticket->{Queue}{type}, 'queue');
     like($ticket->{Queue}{_url}, qr[$rest_base_path/queue/1$]);
     is($ticket->{Owner}{Name}, 'Nobody');
-    is(scalar keys %$ticket, 6);
+    is(scalar keys %$ticket, 7);
+
+    # Is Requestor returned?
+    cmp_deeply($ticket->{Requestors}, {
+            Members => [
+                {
+                    'type' => 'user',
+                    'id'   => 'requestor@example.com',
+                    '_url' => re(qr{$rest_base_path/user/requestor\@example.com}),
+                 }
+            ],
+            'Name' => 'Requestor'
+        },
+    , 'Requestor');
 }
 
 # Ticket Search - Fields, sub objects with SeeQueue right
@@ -376,7 +390,8 @@ my ($ticket_url, $ticket_id);
     is($content->{count}, 3);
     is($content->{page}, 1);
     is($content->{per_page}, 20);
-    is($content->{total}, 3);
+    # The total is lies, see: https://rt.bestpractical.com/Ticket/Display.html?id=35774
+    #is($content->{total}, 3);
     is(scalar @{$content->{items}}, 3);
 
     for my $txn (@{ $content->{items} }) {

@@ -6,6 +6,7 @@ use Moose;
 use MooseX::NonMoose;
 use namespace::autoclean;
 use RT::Extension::REST2::Util qw(expand_uid format_datetime custom_fields_for);
+use Scalar::Util qw(blessed);
 
 extends 'Web::Machine::Resource';
 
@@ -98,8 +99,18 @@ sub expand_field {
                 }
             }
         }
-
         $result //= $item->$field;
+
+        # If we have an RT::Group (Requestors, AdminCc etc) expand it.
+        if (blessed($result) && $result->isa('RT::Group')) {
+            $result = {
+                'Name'    => $result->Name(),
+                'Members' => [
+                    map { expand_uid($_->MemberObj->Object->UID) }
+                        @{ $result->MembersObj->ItemsArrayRef }
+                ],
+            };
+        }
     }
 
     return $result // '';
