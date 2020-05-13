@@ -1,4 +1,4 @@
-rt-extension-rest2 (1.09-3) UNRELEASED; urgency=medium
+rt-extension-rest2 (1.09-3) unstable; urgency=medium
 
   * Add a missing dependency.
 
