@@ -1,8 +1,14 @@
+rt-extension-rest2 (1.09-2) UNRELEASED; urgency=medium
+
+  * Add a missing dependency.
+
+ -- Andrew Ruthven <puck@catalystcloud.nz>  Wed, 01 Jul 2020 01:06:15 +0000
+
 rt-extension-rest2 (1.09-1) unstable; urgency=medium
 
   * New upstream release
 
- -- Cloud-init-user <puck@catalystcloud.nz>  Tue, 12 May 2020 11:27:42 +0000
+ -- Andrew Ruthven <puck@catalystcloud.nz>  Tue, 12 May 2020 11:27:42 +0000
 
 rt-extension-rest2 (1.08d-1) unstable; urgency=medium
 
